@@ -1,0 +1,9 @@
+name: GroupProject
+version: ${project.version}
+main: com.port.groupproject.GroupProject
+authors: [ Jasper ]
+commands:
+  hammer:
+    description: Gives player a hammer.
+    usage: /<command>
+    aliases: [gphammer]
