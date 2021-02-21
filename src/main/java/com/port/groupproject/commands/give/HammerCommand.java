@@ -1,15 +1,11 @@
 package com.port.groupproject.commands.give;
 
-import org.bukkit.ChatColor;
+import com.port.groupproject.enchantments.tools.Hammer;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-
-import java.util.ArrayList;
 
 public class HammerCommand implements CommandExecutor {
 
@@ -19,20 +15,20 @@ public class HammerCommand implements CommandExecutor {
             Player p = (Player) sender;
             if (command.getName().equalsIgnoreCase("hammer")) {
                 if (args.length >= 1) {
-                    if (args[0].equalsIgnoreCase("wood")) {
-                        giveHammer(p, Material.WOOD_PICKAXE, "Wood Hammer");
+                    if (args[0].equalsIgnoreCase("Wood")) {
+                        giveHammer(p, Material.WOOD_PICKAXE);
                         return true;
-                    } else if (args[0].equalsIgnoreCase("stone")) {
-                        giveHammer(p, Material.STONE_PICKAXE, "Stone Hammer");
+                    } else if (args[0].equalsIgnoreCase("Stone")) {
+                        giveHammer(p, Material.STONE_PICKAXE);
                         return true;
-                    } else if (args[0].equalsIgnoreCase("iron")) {
-                        giveHammer(p, Material.IRON_PICKAXE, "Iron Hammer");
+                    } else if (args[0].equalsIgnoreCase("Iron")) {
+                        giveHammer(p, Material.IRON_PICKAXE);
                         return true;
-                    } else if (args[0].equalsIgnoreCase("gold")) {
-                        giveHammer(p, Material.GOLD_PICKAXE, "Gold Hammer");
+                    } else if (args[0].equalsIgnoreCase("Gold")) {
+                        giveHammer(p, Material.GOLD_PICKAXE);
                         return true;
-                    } else if (args[0].equalsIgnoreCase("diamond")) {
-                        giveHammer(p, Material.DIAMOND_PICKAXE, "Diamond Hammer");
+                    } else if (args[0].equalsIgnoreCase("Diamond")) {
+                        giveHammer(p, Material.DIAMOND_PICKAXE);
                         return true;
                     }
                 } else {
@@ -43,15 +39,8 @@ public class HammerCommand implements CommandExecutor {
         return false;
     }
 
-    private void giveHammer(Player p, Material material, String itemName) {
-        ItemStack hammer = new ItemStack(material);
-        ItemMeta meta = hammer.getItemMeta();
-        ArrayList<String> lore = new ArrayList<>();
-        lore.add(ChatColor.GRAY + "Hammer");
-        meta.setDisplayName(itemName);
-        meta.setLore(lore);
-        hammer.setItemMeta(meta);
-        p.getInventory().addItem(hammer);
-        p.sendMessage("Given *1 hammer to " + p.getName());
+    private void giveHammer(Player p, Material material) {
+        p.getInventory().addItem(Hammer.getHammer(material));
+        p.sendMessage("Given *1 Hammer to " + p.getName());
     }
 }

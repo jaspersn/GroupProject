@@ -13,6 +13,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -104,4 +105,16 @@ public class Hammer implements Listener {
         return isValid;
     }
 
+    public static ItemStack getHammer(Material material) {
+        ItemStack hammer = new ItemStack(material);
+        ItemMeta meta = hammer.getItemMeta();
+        ArrayList<String> lore = new ArrayList<>();
+        lore.add(ChatColor.GRAY + "Hammer");
+        String type = material.name();
+        type = type.substring(0, 1).toUpperCase() + type.substring(1, type.indexOf("_")).toLowerCase();
+        meta.setDisplayName(type + " Hammer");
+        meta.setLore(lore);
+        hammer.setItemMeta(meta);
+        return hammer;
+    }
 }
