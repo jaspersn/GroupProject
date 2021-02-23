@@ -6,4 +6,12 @@ commands:
   hammer:
     description: Gives player a hammer.
     usage: /<command>
-    aliases: [gphammer]
+    aliases: [ gphammer ]
+  felling:
+    description: Gives player a felling axe.
+    usage: /<command>
+    aliases: [ gpfelling ]
+  veinminer:
+    description: Gives player a vein mining pickaxe.
+    usage: /<command>
+    aliases: [ gpveinminer, vminer ]

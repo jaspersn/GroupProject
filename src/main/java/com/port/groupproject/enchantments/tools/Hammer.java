@@ -16,6 +16,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 public class Hammer implements Listener {
 
@@ -27,23 +28,27 @@ public class Hammer implements Listener {
         Player p = event.getPlayer();
         World w = p.getWorld();
         ItemStack itemInHand = p.getInventory().getItemInMainHand();
-        // Check for valid item
-        if (itemInHand != null && itemInHand.hasItemMeta()) {
-            ItemMeta meta = p.getInventory().getItemInMainHand().getItemMeta();
-            if (meta.hasLore()) {
-                // If is a hammer
-                if (meta.getLore().contains(ChatColor.GRAY + "Hammer")) {
-                    List<Location> grid = getBlockList(p, w, event.getBlock().getLocation());
-                    // Break blocks
-                    int count = 0;
-                    for (Location i : grid) {
-                        if (isValidBlock(i.getBlock())) { // break only if valid
-                            if (i.getBlock().breakNaturally(itemInHand)) count++; // Returns true IFF block was broken
+        // Don't run if player is crouching
+        if (!p.isSneaking()) {
+            // Check for valid item
+            if (itemInHand != null && itemInHand.hasItemMeta()) {
+                ItemMeta meta = p.getInventory().getItemInMainHand().getItemMeta();
+                if (meta.hasLore()) {
+                    // If is a hammer
+                    if (meta.getLore().contains(ChatColor.GRAY + "Hammer")) {
+                        int maxDurability = itemInHand.getType().getMaxDurability() - itemInHand.getDurability();
+                        boolean hasDurability = (maxDurability > 0);
+                        List<Location> grid = getBlockList(p, w, event.getBlock().getLocation());
+                        // Break blocks and damage hammer
+                        for (Location l : grid) {
+                            if (hasDurability && isValidBlock(l.getBlock())) {
+                                l.getBlock().breakNaturally(itemInHand);
+                                itemInHand.setDurability((short) (itemInHand.getDurability() + 1));
+                            }
                         }
                     }
-                    // Damage the hammer
-                    itemInHand.setDurability((short) (itemInHand.getDurability() + count));
                 }
+
             }
         }
     }
