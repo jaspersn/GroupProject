@@ -1,4 +1,4 @@
-package com.port.groupproject.enchantments.tools;
+package com.port.groupproject.events;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -17,7 +17,7 @@ import java.util.*;
 public class VeinMiner implements Listener {
 
     private final BlockFace[] FACES = {BlockFace.UP, BlockFace.DOWN, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST};
-    private final int BLOCK_LIMIT = 128; // Maximum number of blocks that can be broken in one hit
+    private final int BLOCK_LIMIT = 64; // Maximum number of blocks that can be broken in one hit
     @EventHandler
     // Runs every time the player breaks a block
     public void onMine(BlockBreakEvent event) {
@@ -25,26 +25,22 @@ public class VeinMiner implements Listener {
         World w = p.getWorld();
         ItemStack itemInHand = p.getInventory().getItemInMainHand();
         // Only run if player is crouching
-        if (p.isSneaking()) {
-            // Check for valid item
-            if (itemInHand != null && itemInHand.hasItemMeta()) {
-                ItemMeta meta = p.getInventory().getItemInMainHand().getItemMeta();
-                if (meta.hasLore()) {
-                    // If is a hammer
-                    if (meta.getLore().contains(ChatColor.YELLOW + "Vein Miner")) {
-                        int maxDurability = itemInHand.getType().getMaxDurability() - itemInHand.getDurability();
-                        boolean hasDurability = (maxDurability > 0);
-                        Set<Block> blocksInVein = getBlocksInVein(event.getBlock());
-                        // Break blocks and damage pickaxe
-                        for (Block b : blocksInVein) {
-                            if (hasDurability) {
-                                b.breakNaturally(itemInHand);
-                                itemInHand.setDurability((short) (itemInHand.getDurability() + 1));
-                            }
-                        }
-                    }
+        if (p.isSneaking() && isValidItem(itemInHand)) {
+            short durability = itemInHand.getDurability();
+            int maxDurability = itemInHand.getType().getMaxDurability() - durability;
+            boolean hasDurability = (maxDurability > 0);
+            Set<Block> blocksInVein = getBlocksInVein(event.getBlock());
+            // Break blocks and damage pickaxe
+            for (Block b : blocksInVein) {
+                if (hasDurability) {
+                    b.breakNaturally(itemInHand);
+                    durability++;
+                    maxDurability = itemInHand.getType().getMaxDurability() - durability;
+                    hasDurability = (maxDurability > 0);
                 }
             }
+            if (!hasDurability) p.getInventory().remove(itemInHand);
+            else itemInHand.setDurability(durability);
         }
     }
 
@@ -77,17 +73,6 @@ public class VeinMiner implements Listener {
         }
     }
 
-    // Returns the item given in the parameter with the "Vein Miner" enchantment
-    public static ItemStack getVeinMiner(Material material) {
-        ItemStack veinMiner = new ItemStack(material);
-        ItemMeta meta = veinMiner.getItemMeta();
-        ArrayList<String> lore = new ArrayList<>();
-        lore.add(ChatColor.YELLOW + "Vein Miner");
-        meta.setLore(lore);
-        veinMiner.setItemMeta(meta);
-        return veinMiner;
-    }
-
     // Returns whether is a valid block to break (ores)
     private boolean isValidBlock(Block b) {
         List<Material> validBlocks = new LinkedList<>();
@@ -96,9 +81,25 @@ public class VeinMiner implements Listener {
         validBlocks.add(Material.IRON_ORE);
         validBlocks.add(Material.GOLD_ORE);
         validBlocks.add(Material.DIAMOND_ORE);
+        validBlocks.add(Material.EMERALD_ORE);
+        validBlocks.add(Material.QUARTZ_ORE);
         boolean isValid = false;
         for(Material m : validBlocks) {
             if (b.getType().equals(m)) isValid = true;
+        }
+        return isValid;
+    }
+    // Returns whether is a valid item (pickaxes)
+    private boolean isValidItem(ItemStack i) {
+        List<Material> validItems = new LinkedList<>();
+        validItems.add(Material.WOOD_PICKAXE);
+        validItems.add(Material.STONE_PICKAXE);
+        validItems.add(Material.IRON_PICKAXE);
+        validItems.add(Material.GOLD_PICKAXE);
+        validItems.add(Material.DIAMOND_PICKAXE);
+        boolean isValid = false;
+        for(Material m : validItems) {
+            if (i.getType().equals(m)) isValid = true;
         }
         return isValid;
     }

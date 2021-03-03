@@ -2,40 +2,44 @@ package com.port.groupproject;
 
 import com.port.groupproject.commands.give.FellingCommand;
 import com.port.groupproject.commands.give.HammerCommand;
-import com.port.groupproject.commands.give.VeinMinerCommand;
 import com.port.groupproject.enchantments.tools.Felling;
 import com.port.groupproject.enchantments.tools.Hammer;
-import com.port.groupproject.enchantments.tools.VeinMiner;
-import com.port.groupproject.events.StartupEventListener;
-import com.port.groupproject.recipes.RecipeManager;
+import com.port.groupproject.events.VeinMiner;
+import com.port.groupproject.loottables.LootTableManager;
+import com.port.groupproject.recipes.ShapedRecipeManager;
+import com.port.groupproject.recipes.FurnaceRecipeManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.net.URISyntaxException;
+
 public final class GroupProject extends JavaPlugin {
+
+    private final LootTableManager LOOT_TABLE = new LootTableManager(getClass().getProtectionDomain().getCodeSource().getLocation().toURI());
+
+    public GroupProject() throws URISyntaxException {
+    }
 
     @Override
     public void onEnable() {
         // register enchantment events
         getServer().getPluginManager().registerEvents(new Hammer(), this);
         getServer().getPluginManager().registerEvents(new Felling(), this);
-        getServer().getPluginManager().registerEvents(new VeinMiner(), this);
 
         //register events
-        getServer().getPluginManager().registerEvents(new StartupEventListener(), this);
+        getServer().getPluginManager().registerEvents(new VeinMiner(), this);
 
         // register commands
         this.getCommand("hammer").setExecutor(new HammerCommand());
         this.getCommand("felling").setExecutor(new FellingCommand());
-        this.getCommand("veinminer").setExecutor(new VeinMinerCommand());
 
         // Register recipes
-        getServer().addRecipe(RecipeManager.woodHammer());
-        getServer().addRecipe(RecipeManager.stoneHammer());
-        getServer().addRecipe(RecipeManager.ironHammer());
-        getServer().addRecipe(RecipeManager.goldHammer());
-        getServer().addRecipe(RecipeManager.diamondHammer());
-        getServer().addRecipe(RecipeManager.ironFellingAxe());
-        getServer().addRecipe(RecipeManager.goldFellingAxe());
-        getServer().addRecipe(RecipeManager.diamondFellingAxe());
+        getServer().addRecipe(ShapedRecipeManager.ironHammer());
+        getServer().addRecipe(ShapedRecipeManager.goldHammer());
+        getServer().addRecipe(ShapedRecipeManager.diamondHammer());
+        getServer().addRecipe(ShapedRecipeManager.ironFellingAxe());
+        getServer().addRecipe(ShapedRecipeManager.goldFellingAxe());
+        getServer().addRecipe(ShapedRecipeManager.diamondFellingAxe());
+        getServer().addRecipe(FurnaceRecipeManager.rottenFleshToLeather());
 
     }
 

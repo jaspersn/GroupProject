@@ -16,7 +16,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
+import java.util.Queue;
 
 public class Hammer implements Listener {
 
@@ -37,53 +37,49 @@ public class Hammer implements Listener {
                     // If is a hammer
                     if (meta.getLore().contains(ChatColor.GRAY + "Hammer")) {
                         int maxDurability = itemInHand.getType().getMaxDurability() - itemInHand.getDurability();
-                        boolean hasDurability = (maxDurability > 0);
-                        List<Location> grid = getBlockList(p, w, event.getBlock().getLocation());
+                        boolean hasDurability = maxDurability > 0;
+                        Queue<Location> grid = getBlockList(p, w, event.getBlock().getLocation());
                         // Break blocks and damage hammer
-                        for (Location l : grid) {
-                            if (hasDurability && isValidBlock(l.getBlock())) {
-                                l.getBlock().breakNaturally(itemInHand);
-                                itemInHand.setDurability((short) (itemInHand.getDurability() + 1));
+                        short durability = itemInHand.getDurability();
+                        while (!grid.isEmpty() && hasDurability) {
+                            Location current = grid.remove();
+                            if (isValidBlock(current.getBlock())) {
+                                current.getBlock().breakNaturally(itemInHand);
+                                durability++;
                             }
+                            maxDurability = itemInHand.getType().getMaxDurability() - durability;
+                            hasDurability = maxDurability > 0;
                         }
+                        if (!hasDurability) p.getInventory().remove(itemInHand);
+                        else itemInHand.setDurability(durability);
                     }
                 }
-
             }
         }
     }
 
-    // Returns a list of the location of 8 blocks adjacent to the one being broken
-    private List<Location> getBlockList(Player p, World w, Location l) {
+    // Returns a Queue of the location of the blocks adjacent to the one being broken
+    private Queue<Location> getBlockList(Player p, World w, Location l) {
         BlockFace face = getBlockFace(p);
-        List<Location> grid = new LinkedList<>();
-        if (face == BlockFace.SOUTH || face == BlockFace.NORTH) {
-            grid.add(new Location(w, l.getX(), l.getY() + 1, l.getZ()));
-            grid.add(new Location(w, l.getX() + 1, l.getY() + 1, l.getZ()));
-            grid.add(new Location(w, l.getX() - 1, l.getY() + 1, l.getZ()));
-            grid.add(new Location(w, l.getX() + 1, l.getY(), l.getZ()));
-            grid.add(new Location(w, l.getX() - 1, l.getY(), l.getZ()));
-            grid.add(new Location(w, l.getX() + 1, l.getY() - 1, l.getZ()));
-            grid.add(new Location(w, l.getX() - 1, l.getY() - 1, l.getZ()));
-            grid.add(new Location(w, l.getX(), l.getY() - 1, l.getZ()));
-        } else if (face == BlockFace.UP || face == BlockFace.DOWN) {
-            grid.add(new Location(w, l.getX() + 1, l.getY(), l.getZ()));
-            grid.add(new Location(w, l.getX() + 1, l.getY() , l.getZ() - 1));
-            grid.add(new Location(w, l.getX() + 1, l.getY(), l.getZ() + 1));
-            grid.add(new Location(w, l.getX() - 1, l.getY(), l.getZ()));
-            grid.add(new Location(w, l.getX() - 1, l.getY(), l.getZ() - 1));
-            grid.add(new Location(w, l.getX() - 1, l.getY(), l.getZ() + 1));
-            grid.add(new Location(w, l.getX(), l.getY(), l.getZ() + 1));
-            grid.add(new Location(w, l.getX(), l.getY(), l.getZ() - 1));
-        } else if (face == BlockFace.EAST || face == BlockFace.WEST) {
-            grid.add(new Location(w, l.getX(), l.getY() + 1, l.getZ()));
-            grid.add(new Location(w, l.getX(), l.getY() + 1, l.getZ() + 1));
-            grid.add(new Location(w, l.getX(), l.getY() + 1, l.getZ() - 1));
-            grid.add(new Location(w, l.getX(), l.getY(), l.getZ() + 1));
-            grid.add(new Location(w, l.getX(), l.getY(), l.getZ() - 1));
-            grid.add(new Location(w, l.getX(), l.getY() - 1, l.getZ() + 1));
-            grid.add(new Location(w, l.getX(), l.getY() - 1, l.getZ() - 1));
-            grid.add(new Location(w, l.getX(), l.getY() - 1, l.getZ()));
+        Queue<Location> grid = new LinkedList<>();
+        if (face == BlockFace.SOUTH || face == BlockFace.NORTH) { // no z
+            for (int x = -1; x <= 1; x++) {
+                for (int y = -1; y <= 1; y++) {
+                    grid.add(new Location(w, l.getX() + x, l.getY() + y, l.getZ()));
+                }
+            }
+        } else if (face == BlockFace.UP || face == BlockFace.DOWN) { // no y
+            for (int x = -1; x <= 1; x++) {
+                for (int z = -1; z <= 1; z++) {
+                    grid.add(new Location(w, l.getX() + x, l.getY(), l.getZ() + z));
+                }
+            }
+        } else if (face == BlockFace.EAST || face == BlockFace.WEST) { // no x
+            for (int y = -1; y <= 1; y++) {
+                for (int z = -1; z <= 1; z++) {
+                    grid.add(new Location(w, l.getX(), l.getY() + y, l.getZ() + z));
+                }
+            }
         }
         return grid;
     }

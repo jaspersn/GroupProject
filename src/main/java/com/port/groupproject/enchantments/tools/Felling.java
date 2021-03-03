@@ -1,7 +1,6 @@
 package com.port.groupproject.enchantments.tools;
 
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -34,18 +33,21 @@ public class Felling implements Listener {
                 if (meta.hasLore()) {
                     // If is a felling axe
                     if (meta.getLore().contains(ChatColor.GREEN + "Felling")) {
-                        int maxDurability = itemInHand.getType().getMaxDurability() - itemInHand.getDurability();
+                        short durability = itemInHand.getDurability();
+                        int maxDurability = itemInHand.getType().getMaxDurability() - durability;
                         boolean hasDurability = (maxDurability > 0);
-                        Set<Block> blocksInVein = getBlocksInVein(event.getBlock());
-                        for (Block b : blocksInVein) {
-                            // player must be below or at trunk level and have durability on axe
-                            if (hasDurability && p.getLocation().getY() <= event.getBlock().getLocation().getY()) {
-                                if (b.getType().equals(Material.LOG)) { // Damage tool IFF log
-                                    itemInHand.setDurability((short) (itemInHand.getDurability() + 1));
-                                }
-                                b.breakNaturally(itemInHand); // Break blocks
+                        Set<Block> blocksInTree = getBlocksInVein(event.getBlock());
+                        // Break blocks and damage axe
+                        for (Block b : blocksInTree) {
+                            if (hasDurability) {
+                                b.breakNaturally(itemInHand);
+                                durability++;
+                                maxDurability = itemInHand.getType().getMaxDurability() - durability;
+                                hasDurability = (maxDurability > 0);
                             }
                         }
+                        if (!hasDurability) p.getInventory().remove(itemInHand);
+                        else itemInHand.setDurability(durability);
                     }
                 }
             }

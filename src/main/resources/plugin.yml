@@ -10,8 +10,4 @@ commands:
   felling:
     description: Gives player a felling axe.
     usage: /<command>
-    aliases: [ gpfelling ]
-  veinminer:
-    description: Gives player a vein mining pickaxe.
-    usage: /<command>
-    aliases: [ gpveinminer, vminer ]
+    aliases: [ gpfelling, timber, gptimber ]
