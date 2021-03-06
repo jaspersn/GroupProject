@@ -5,7 +5,6 @@ import com.port.groupproject.commands.give.HammerCommand;
 import com.port.groupproject.enchantments.tools.Felling;
 import com.port.groupproject.enchantments.tools.Hammer;
 import com.port.groupproject.events.VeinMiner;
-import com.port.groupproject.loottables.LootTableManager;
 import com.port.groupproject.recipes.ShapedRecipeManager;
 import com.port.groupproject.recipes.FurnaceRecipeManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -13,8 +12,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.net.URISyntaxException;
 
 public final class GroupProject extends JavaPlugin {
-
-    private final LootTableManager LOOT_TABLE = new LootTableManager(getClass().getProtectionDomain().getCodeSource().getLocation().toURI());
 
     public GroupProject() throws URISyntaxException {
     }

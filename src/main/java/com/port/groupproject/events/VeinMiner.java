@@ -5,6 +5,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.entity.ExperienceOrb;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -25,15 +26,26 @@ public class VeinMiner implements Listener {
         World w = p.getWorld();
         ItemStack itemInHand = p.getInventory().getItemInMainHand();
         // Only run if player is crouching
-        if (p.isSneaking() && isValidItem(itemInHand)) {
+        if (p.isSneaking() && isValidItem(itemInHand) && p.getFoodLevel() > 0) {
+            // Don't run if hammer
+            if (itemInHand.hasItemMeta()) {
+                ItemMeta meta = p.getInventory().getItemInMainHand().getItemMeta();
+                if (meta.hasLore()) {
+                    // If is a hammer
+                    if (meta.getLore().contains(ChatColor.GRAY + "Hammer")) return;
+                }
+            }
+            Block b = event.getBlock();
+            Material bType = b.getType();
             short durability = itemInHand.getDurability();
             int maxDurability = itemInHand.getType().getMaxDurability() - durability;
             boolean hasDurability = (maxDurability > 0);
-            Set<Block> blocksInVein = getBlocksInVein(event.getBlock());
+            Set<Block> blocksInVein = getBlocksInVein(b);
+            int blockNum = blocksInVein.size();
             // Break blocks and damage pickaxe
-            for (Block b : blocksInVein) {
+            for (Block current : blocksInVein) {
                 if (hasDurability) {
-                    b.breakNaturally(itemInHand);
+                    current.breakNaturally(itemInHand);
                     durability++;
                     maxDurability = itemInHand.getType().getMaxDurability() - durability;
                     hasDurability = (maxDurability > 0);
@@ -41,6 +53,14 @@ public class VeinMiner implements Listener {
             }
             if (!hasDurability) p.getInventory().remove(itemInHand);
             else itemInHand.setDurability(durability);
+            // Decrease player's hunger by .5 hunger every 8 blocks
+            if (blockNum < 8 && blockNum >= 6) blockNum = 8; // If blockNum is 6 or 7, make it decrease hunger like 8
+            p.setFoodLevel(p.getFoodLevel() - blockNum/8);
+            // Give player experience for mined ore
+            int exp = getExp(bType);
+            for (int i = 0; i < blockNum; i++) {
+                w.spawn(b.getLocation(), ExperienceOrb.class).setExperience(exp);
+            }
         }
     }
 
@@ -64,7 +84,8 @@ public class VeinMiner implements Listener {
         for (BlockFace face : FACES) {
             Block current = block.getRelative(face);
             if (blocksInVein.size() < BLOCK_LIMIT) {
-                if (current.getType() == block.getType()) {
+                // Add to Set if same block (specific case for redstone)
+                if (current.getType() == block.getType() || (current.getType() == Material.REDSTONE_ORE && block.getType() == Material.GLOWING_REDSTONE_ORE) || (current.getType() == Material.GLOWING_REDSTONE_ORE && block.getType() == Material.REDSTONE_ORE)) {
                     if (blocksInVein.add(current)) {
                         todo.add(current);
                     }
@@ -78,10 +99,12 @@ public class VeinMiner implements Listener {
         List<Material> validBlocks = new LinkedList<>();
         validBlocks.add(Material.COAL_ORE);
         validBlocks.add(Material.REDSTONE_ORE);
+        validBlocks.add(Material.GLOWING_REDSTONE_ORE);
         validBlocks.add(Material.IRON_ORE);
         validBlocks.add(Material.GOLD_ORE);
         validBlocks.add(Material.DIAMOND_ORE);
         validBlocks.add(Material.EMERALD_ORE);
+        validBlocks.add(Material.LAPIS_ORE);
         validBlocks.add(Material.QUARTZ_ORE);
         boolean isValid = false;
         for(Material m : validBlocks) {
@@ -102,5 +125,14 @@ public class VeinMiner implements Listener {
             if (i.getType().equals(m)) isValid = true;
         }
         return isValid;
+    }
+    // Returns the amount of experience normally given to the player, given the block material
+    private int getExp(Material material) {
+        Random r = new Random();
+        if (material.equals(Material.COAL_ORE)) return r.nextInt(2) + 1; // 1 to 2
+        else if (material.equals(Material.DIAMOND_ORE) || material.equals(Material.EMERALD_ORE)) return r.nextInt(5) + 3; // 3 to 7
+        else if (material.equals(Material.REDSTONE_ORE) || material.equals(Material.GLOWING_REDSTONE_ORE)) return r.nextInt(5) + 1; // 1 to 5
+        else if (material.equals(Material.LAPIS_ORE) || material.equals(Material.QUARTZ_ORE)) return r.nextInt(4) + 2; // 2 to 5
+        else return 0;
     }
 }
